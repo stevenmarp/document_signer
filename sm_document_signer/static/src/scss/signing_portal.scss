@@ -1,0 +1,288 @@
+/* Portal Signing Page Styles */
+
+.sm-signing-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Header */
+.sm-signing-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px 16px 0 0;
+    padding: 2rem;
+    color: white;
+
+    h2 {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .sm-doc-info {
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+}
+
+/* PDF Viewer */
+.sm-pdf-viewer {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+
+    iframe {
+        width: 100%;
+        min-height: 500px;
+        border: none;
+    }
+}
+
+/* Signature Section */
+.sm-signature-section {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+
+    h4 {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Tab styles */
+.sm-sign-tabs {
+    .nav-link {
+        border: 1px solid #dee2e6;
+        border-radius: 8px !important;
+        margin-right: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        color: #6c757d;
+        font-weight: 500;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background-color: #f0f4ff;
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        &.active {
+            background-color: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        i {
+            margin-right: 0.3rem;
+        }
+    }
+}
+
+/* Canvas */
+.sm-canvas-wrapper {
+    position: relative;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    background: #fafbfc;
+    transition: border-color 0.2s;
+
+    &:hover {
+        border-color: #667eea;
+    }
+
+    canvas {
+        display: block;
+        cursor: crosshair;
+        border-radius: 6px;
+    }
+
+    .sm-canvas-placeholder {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #adb5bd;
+        pointer-events: none;
+        text-align: center;
+        font-size: 0.9rem;
+
+        i {
+            display: block;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+    }
+}
+
+/* Typed Signature */
+.sm-typed-input {
+    font-size: 1.1rem;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    transition: border-color 0.2s;
+
+    &:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+    }
+}
+
+.sm-typed-preview {
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fafbfc;
+    border: 1px dashed #dee2e6;
+    border-radius: 8px;
+    margin-top: 1rem;
+    padding: 1rem;
+
+    span {
+        font-family: 'Dancing Script', cursive, serif;
+        font-size: 3rem;
+        font-style: italic;
+        color: #1a1a2e;
+    }
+}
+
+/* Upload */
+.sm-upload-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    background: #fafbfc;
+    transition: all 0.2s;
+    cursor: pointer;
+
+    &:hover {
+        border-color: #667eea;
+        background: #f0f4ff;
+    }
+
+    i {
+        font-size: 2.5rem;
+        color: #adb5bd;
+        margin-bottom: 0.5rem;
+    }
+
+    p {
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+}
+
+.sm-upload-preview {
+    margin-top: 1rem;
+    text-align: center;
+
+    img {
+        max-height: 200px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 0.5rem;
+        background: white;
+    }
+}
+
+/* Action Buttons */
+.sm-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+
+    .btn-submit-sign {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.2s;
+
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            transform: none;
+            box-shadow: none;
+        }
+    }
+
+    .btn-decline {
+        color: #dc3545;
+        border: 1px solid #dc3545;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        background: transparent;
+        transition: all 0.2s;
+
+        &:hover {
+            background: #dc3545;
+            color: white;
+        }
+    }
+}
+
+/* Success/Error Pages */
+.sm-result-page {
+    text-align: center;
+    padding: 3rem 1rem;
+
+    .sm-result-icon {
+        font-size: 5rem;
+        margin-bottom: 1.5rem;
+
+        &.success { color: #28a745; }
+        &.error { color: #dc3545; }
+        &.warning { color: #ffc107; }
+    }
+
+    h2 {
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    p {
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .sm-signing-header {
+        padding: 1.5rem;
+
+        h2 { font-size: 1.3rem; }
+    }
+
+    .sm-pdf-viewer iframe {
+        min-height: 350px;
+    }
+
+    .sm-typed-preview span {
+        font-size: 2rem;
+    }
+
+    .sm-actions {
+        flex-direction: column;
+
+        .btn-submit-sign,
+        .btn-decline {
+            width: 100%;
+        }
+    }
+}

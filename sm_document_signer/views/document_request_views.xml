@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- ========================= -->
+        <!-- DOCUMENT REQUEST VIEWS    -->
+        <!-- ========================= -->
+
+        <!-- List View -->
+        <record id="view_document_request_list" model="ir.ui.view">
+            <field name="name">sm.document.request.list</field>
+            <field name="model">sm.document.request</field>
+            <field name="arch" type="xml">
+                <list string="Signing Requests"
+                      decoration-info="state == 'draft'"
+                      decoration-warning="state in ('sent', 'partial')"
+                      decoration-success="state == 'signed'"
+                      decoration-danger="state in ('expired', 'cancelled')">
+                    <field name="name"/>
+                    <field name="subject"/>
+                    <field name="sender_id" widget="many2one_avatar_user"/>
+                    <field name="signer_count"/>
+                    <field name="signed_count"/>
+                    <field name="progress" widget="progressbar"/>
+                    <field name="signing_order"/>
+                    <field name="expiration_date"/>
+                    <field name="state" widget="badge"
+                           decoration-info="state == 'draft'"
+                           decoration-warning="state in ('sent', 'partial')"
+                           decoration-success="state == 'signed'"
+                           decoration-danger="state in ('expired', 'cancelled')"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Form View -->
+        <record id="view_document_request_form" model="ir.ui.view">
+            <field name="name">sm.document.request.form</field>
+            <field name="model">sm.document.request</field>
+            <field name="arch" type="xml">
+                <form string="Signing Request">
+                    <header>
+                        <button name="action_send" string="📤 Send for Signing" type="object"
+                                class="btn-primary" invisible="state != 'draft'"/>
+                        <button name="action_resend" string="🔄 Resend" type="object"
+                                class="btn-secondary" invisible="state not in ('sent', 'partial')"/>
+                        <button name="action_cancel" string="Cancel" type="object"
+                                invisible="state in ('signed', 'cancelled')"/>
+                        <button name="action_reset_to_draft" string="Reset to Draft" type="object"
+                                invisible="state not in ('cancelled', 'expired')"/>
+                        <button name="action_view_signed_document" string="📥 Download Signed PDF" type="object"
+                                class="btn-success" invisible="state != 'signed'"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,sent,signed"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box"/>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+
+                        <group>
+                            <group string="Document">
+                                <field name="subject" placeholder="e.g., Service Agreement 2026"/>
+                                <field name="document_file" filename="document_filename"
+                                       widget="binary" readonly="state != 'draft'"/>
+                                <field name="document_filename" invisible="1"/>
+                                <field name="sender_id" readonly="1"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                            <group string="Settings">
+                                <field name="signing_order" readonly="state != 'draft'"/>
+                                <field name="expiration_date"/>
+                                <field name="send_reminders"/>
+                                <field name="reminder_days" invisible="not send_reminders"/>
+                                <field name="progress" widget="progressbar"/>
+                            </group>
+                        </group>
+
+                        <group string="Message to Signers" invisible="state not in ('draft',)">
+                            <field name="message" nolabel="1" colspan="2"
+                                   placeholder="Optional message to include in the signing request email..."/>
+                        </group>
+
+                        <notebook>
+                            <page string="Signers" name="signers">
+                                <field name="signer_ids">
+                                    <list editable="bottom">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="partner_id" optional="show"/>
+                                        <field name="name"/>
+                                        <field name="email"/>
+                                        <field name="role" optional="show"/>
+                                        <field name="state" widget="badge"
+                                               decoration-warning="state in ('pending', 'sent')"
+                                               decoration-info="state == 'viewed'"
+                                               decoration-success="state == 'signed'"
+                                               decoration-danger="state in ('declined', 'expired', 'cancelled')"/>
+                                        <field name="signed_date" optional="show"/>
+                                        <field name="signed_ip" optional="hide"/>
+                                        <field name="signing_url" widget="url" optional="hide"/>
+                                        <field name="reminder_count" optional="hide"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Signed Document" name="signed_doc"
+                                  invisible="state != 'signed'">
+                                <group>
+                                    <field name="signed_document" filename="signed_filename"/>
+                                    <field name="signed_filename" invisible="1"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <!-- Kanban View -->
+        <record id="view_document_request_kanban" model="ir.ui.view">
+            <field name="name">sm.document.request.kanban</field>
+            <field name="model">sm.document.request</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="state">
+                    <field name="name"/>
+                    <field name="subject"/>
+                    <field name="state"/>
+                    <field name="sender_id"/>
+                    <field name="signer_count"/>
+                    <field name="signed_count"/>
+                    <field name="progress"/>
+                    <templates>
+                        <t t-name="card">
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_title">
+                                    <strong><field name="name"/></strong>
+                                </div>
+                                <div class="o_kanban_record_subtitle">
+                                    <field name="subject"/>
+                                </div>
+                                <div class="text-muted mt-1">
+                                    <span>By: </span>
+                                    <field name="sender_id" widget="many2one_avatar_user"/>
+                                </div>
+                                <div class="mt-2">
+                                    <field name="progress" widget="progressbar"/>
+                                </div>
+                                <div class="text-muted small">
+                                    <field name="signed_count"/>/<field name="signer_count"/> signed
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- Search View -->
+        <record id="view_document_request_search" model="ir.ui.view">
+            <field name="name">sm.document.request.search</field>
+            <field name="model">sm.document.request</field>
+            <field name="arch" type="xml">
+                <search string="Search Signing Requests">
+                    <field name="name"/>
+                    <field name="subject"/>
+                    <field name="sender_id"/>
+                    <separator/>
+                    <filter name="my_requests" string="My Requests"
+                            domain="[('sender_id', '=', uid)]"/>
+                    <separator/>
+                    <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                    <filter name="sent" string="Awaiting Signature" domain="[('state', 'in', ('sent', 'partial'))]"/>
+                    <filter name="signed" string="Fully Signed" domain="[('state', '=', 'signed')]"/>
+                    <filter name="expired" string="Expired" domain="[('state', '=', 'expired')]"/>
+                    <separator/>
+                    <group expand="0" string="Group By">
+                        <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                        <filter name="group_sender" string="Sender" context="{'group_by': 'sender_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Actions -->
+        <record id="action_document_request" model="ir.actions.act_window">
+            <field name="name">Signing Requests</field>
+            <field name="res_model">sm.document.request</field>
+            <field name="view_mode">list,kanban,form</field>
+            <field name="search_view_id" ref="view_document_request_search"/>
+            <field name="context">{'search_default_my_requests': 1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create your first signing request
+                </p>
+                <p>
+                    Upload a PDF, add signers, and send for digital signatures.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>

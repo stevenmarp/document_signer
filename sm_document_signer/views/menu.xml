@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Dashboard Action -->
+        <record id="action_signer_dashboard" model="ir.actions.client">
+            <field name="name">Signing Dashboard</field>
+            <field name="tag">sm_signer_dashboard</field>
+        </record>
+
+        <!-- Root Menu -->
+        <menuitem id="menu_signer_root"
+                  name="Document Signer"
+                  web_icon="sm_document_signer,static/description/icon.png"
+                  sequence="35"/>
+
+        <!-- Dashboard -->
+        <menuitem id="menu_signer_dashboard"
+                  name="Dashboard"
+                  parent="menu_signer_root"
+                  action="action_signer_dashboard"
+                  sequence="5"/>
+
+        <!-- My Requests -->
+        <menuitem id="menu_signer_requests"
+                  name="Signing Requests"
+                  parent="menu_signer_root"
+                  action="action_document_request"
+                  sequence="10"/>
+
+        <!-- Configuration -->
+        <menuitem id="menu_signer_config"
+                  name="Configuration"
+                  parent="menu_signer_root"
+                  groups="group_signer_manager"
+                  sequence="90"/>
+
+        <menuitem id="menu_signer_all_signers"
+                  name="All Signers"
+                  parent="menu_signer_config"
+                  action="action_document_signer"
+                  sequence="10"/>
+    </data>
+</odoo>

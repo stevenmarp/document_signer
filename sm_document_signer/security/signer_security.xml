@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- ========================= -->
+        <!-- SECURITY GROUPS           -->
+        <!-- ========================= -->
+
+        <record id="module_category_document_signer" model="ir.module.category">
+            <field name="name">Document Signer</field>
+            <field name="sequence">50</field>
+        </record>
+
+        <!-- User: Can create and send requests -->
+        <record id="group_signer_user" model="res.groups">
+            <field name="name">User</field>
+            <field name="category_id" ref="module_category_document_signer"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <!-- Manager: Full access -->
+        <record id="group_signer_manager" model="res.groups">
+            <field name="name">Manager</field>
+            <field name="category_id" ref="module_category_document_signer"/>
+            <field name="implied_ids" eval="[(4, ref('group_signer_user'))]"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+        <!-- ========================= -->
+        <!-- RECORD RULES              -->
+        <!-- ========================= -->
+
+        <!-- Users can only see their own requests -->
+        <record id="rule_request_user" model="ir.rule">
+            <field name="name">Document Request: User - Own</field>
+            <field name="model_id" ref="model_sm_document_request"/>
+            <field name="domain_force">[('sender_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_signer_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- Managers can see all -->
+        <record id="rule_request_manager" model="ir.rule">
+            <field name="name">Document Request: Manager - All</field>
+            <field name="model_id" ref="model_sm_document_request"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_signer_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- Signer records follow request access -->
+        <record id="rule_signer_user" model="ir.rule">
+            <field name="name">Document Signer: User - Own Requests</field>
+            <field name="model_id" ref="model_sm_document_signer"/>
+            <field name="domain_force">[('request_id.sender_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_signer_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <record id="rule_signer_manager" model="ir.rule">
+            <field name="name">Document Signer: Manager - All</field>
+            <field name="model_id" ref="model_sm_document_signer"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_signer_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- Multi-company -->
+        <record id="rule_request_company" model="ir.rule">
+            <field name="name">Document Request: Multi-Company</field>
+            <field name="model_id" ref="model_sm_document_request"/>
+            <field name="domain_force">[
+                '|',
+                ('company_id', '=', False),
+                ('company_id', 'in', company_ids),
+            ]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+    </data>
+</odoo>

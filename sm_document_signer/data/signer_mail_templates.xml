@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- ================================ -->
+        <!-- SIGNING REQUEST EMAIL            -->
+        <!-- ================================ -->
+        <record id="mail_template_signing_request" model="mail.template">
+            <field name="name">Document Signer: Signing Request</field>
+            <field name="model_id" ref="model_sm_document_signer"/>
+            <field name="subject">📝 Signature Required: {{ object.request_id.subject }}</field>
+            <field name="email_from">{{ (object.request_id.sender_id.email_formatted or object.company_id.email_formatted) }}</field>
+            <field name="email_to">{{ object.email }}</field>
+            <field name="body_html"><![CDATA[
+<div style="margin:0;padding:0;font-family: Arial, Helvetica, sans-serif;">
+    <table width="600" style="margin:0 auto;background:#ffffff;border-radius:8px;border:1px solid #e0e0e0;">
+        <tr>
+            <td style="padding:30px 40px;background:#875A7B;border-radius:8px 8px 0 0;">
+                <h1 style="color:#ffffff;margin:0;font-size:24px;">✍️ Signature Request</h1>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:30px 40px;">
+                <p style="font-size:16px;color:#333;">Hello <strong>{{ object.name }}</strong>,</p>
+                <p style="font-size:14px;color:#555;">
+                    <strong>{{ object.request_id.sender_id.name }}</strong> has requested your signature on:
+                </p>
+                <div style="background:#f8f9fa;padding:15px;border-radius:5px;margin:15px 0;">
+                    <p style="margin:5px 0;"><strong>Document:</strong> {{ object.request_id.subject }}</p>
+                    <p style="margin:5px 0;"><strong>Reference:</strong> {{ object.request_id.name }}</p>
+                    {% if object.role %}
+                    <p style="margin:5px 0;"><strong>Your role:</strong> {{ object.role }}</p>
+                    {% endif %}
+                    {% if object.request_id.expiration_date %}
+                    <p style="margin:5px 0;color:#dc3545;"><strong>⏰ Expires:</strong> {{ object.request_id.expiration_date }}</p>
+                    {% endif %}
+                </div>
+                {% if object.request_id.message %}
+                <div style="background:#fff3cd;padding:15px;border-radius:5px;margin:15px 0;border-left:4px solid #ffc107;">
+                    <p style="margin:0;font-size:13px;color:#856404;">{{ object.request_id.message }}</p>
+                </div>
+                {% endif %}
+                <div style="text-align:center;margin:25px 0;">
+                    <a href="{{ object.signing_url }}"
+                       style="background:#875A7B;color:#ffffff;padding:14px 40px;border-radius:5px;text-decoration:none;font-size:16px;font-weight:bold;display:inline-block;">
+                        ✍️ Review &amp; Sign Document
+                    </a>
+                </div>
+                <p style="font-size:12px;color:#999;text-align:center;">
+                    If the button doesn't work, copy and paste this link:<br/>
+                    <a href="{{ object.signing_url }}" style="color:#875A7B;">{{ object.signing_url }}</a>
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:20px 40px;background:#f8f9fa;border-radius:0 0 8px 8px;text-align:center;">
+                <p style="font-size:11px;color:#999;margin:0;">
+                    Powered by Document Signer — {{ object.company_id.name }}
+                </p>
+            </td>
+        </tr>
+    </table>
+</div>
+]]></field>
+            <field name="lang">{{ object.partner_id.lang }}</field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+        <!-- ================================ -->
+        <!-- SIGNING COMPLETE NOTIFICATION    -->
+        <!-- ================================ -->
+        <record id="mail_template_signing_complete" model="mail.template">
+            <field name="name">Document Signer: All Signed</field>
+            <field name="model_id" ref="model_sm_document_request"/>
+            <field name="subject">✅ All Signatures Collected: {{ object.subject }}</field>
+            <field name="email_from">{{ (object.company_id.email_formatted or '') }}</field>
+            <field name="email_to">{{ object.sender_id.email }}</field>
+            <field name="body_html"><![CDATA[
+<div style="margin:0;padding:0;font-family: Arial, Helvetica, sans-serif;">
+    <table width="600" style="margin:0 auto;background:#ffffff;border-radius:8px;border:1px solid #e0e0e0;">
+        <tr>
+            <td style="padding:30px 40px;background:#28a745;border-radius:8px 8px 0 0;">
+                <h1 style="color:#ffffff;margin:0;font-size:24px;">✅ Document Fully Signed!</h1>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:30px 40px;">
+                <p style="font-size:16px;color:#333;">Hello <strong>{{ object.sender_id.name }}</strong>,</p>
+                <p style="font-size:14px;color:#555;">
+                    All signers have completed signing the document:
+                </p>
+                <div style="background:#d4edda;padding:15px;border-radius:5px;margin:15px 0;border-left:4px solid #28a745;">
+                    <p style="margin:5px 0;"><strong>Document:</strong> {{ object.subject }}</p>
+                    <p style="margin:5px 0;"><strong>Reference:</strong> {{ object.name }}</p>
+                    <p style="margin:5px 0;"><strong>Signers:</strong> {{ object.signed_count }}/{{ object.signer_count }}</p>
+                </div>
+                <p style="font-size:14px;color:#555;">
+                    You can download the signed document from your Odoo dashboard.
+                </p>
+            </td>
+        </tr>
+    </table>
+</div>
+]]></field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+    </data>
+</odoo>

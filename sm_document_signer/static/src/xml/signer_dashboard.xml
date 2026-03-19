@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sm_document_signer.SignerDashboard">
+        <div class="o_signer_dashboard container-fluid py-4">
+            <!-- Loading -->
+            <div t-if="state.loading" class="text-center py-5">
+                <i class="fa fa-spinner fa-spin fa-3x text-primary"/>
+                <p class="mt-3 text-muted">Loading dashboard...</p>
+            </div>
+
+            <div t-else="">
+                <!-- Header -->
+                <div class="row mb-4">
+                    <div class="col-12 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="display-6">
+                                <i class="fa fa-pencil-square-o text-primary me-2"/>
+                                Document Signer
+                            </h1>
+                            <p class="text-muted">Your document signing overview</p>
+                        </div>
+                        <button class="btn btn-primary btn-lg" t-on-click="createNew">
+                            <i class="fa fa-plus me-1"/> New Signing Request
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-3">
+                        <div class="card border-0 shadow-sm h-100 cursor-pointer" t-on-click="openDraft">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted text-uppercase small mb-2">Drafts</h6>
+                                        <h2 class="mb-0 text-secondary" t-esc="state.stats.draft"/>
+                                    </div>
+                                    <div class="bg-secondary bg-opacity-10 rounded-circle p-3">
+                                        <i class="fa fa-file-o fa-2x text-secondary"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-3">
+                        <div class="card border-0 shadow-sm h-100 cursor-pointer" t-on-click="openSent">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted text-uppercase small mb-2">Awaiting Signature</h6>
+                                        <h2 class="mb-0 text-warning" t-esc="state.stats.sent"/>
+                                    </div>
+                                    <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                                        <i class="fa fa-clock-o fa-2x text-warning"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-3">
+                        <div class="card border-0 shadow-sm h-100 cursor-pointer" t-on-click="openSigned">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted text-uppercase small mb-2">Fully Signed</h6>
+                                        <h2 class="mb-0 text-success" t-esc="state.stats.signed"/>
+                                    </div>
+                                    <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                                        <i class="fa fa-check-circle fa-2x text-success"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-3">
+                        <div class="card border-0 shadow-sm h-100 cursor-pointer" t-on-click="openExpired">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted text-uppercase small mb-2">Expired</h6>
+                                        <h2 class="mb-0 text-danger" t-esc="state.stats.expired"/>
+                                    </div>
+                                    <div class="bg-danger bg-opacity-10 rounded-circle p-3">
+                                        <i class="fa fa-times-circle fa-2x text-danger"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="row">
+                    <!-- Pending Signers -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white border-0">
+                                <h5 class="mb-0">
+                                    <i class="fa fa-user-circle text-warning me-2"/>
+                                    Awaiting Signatures
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <t t-if="state.pendingSigners.length === 0">
+                                    <div class="text-center py-4">
+                                        <i class="fa fa-check-circle fa-3x text-success mb-3"/>
+                                        <p class="text-muted">🎉 No pending signatures!</p>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="list-group list-group-flush">
+                                        <t t-foreach="state.pendingSigners" t-as="signer" t-key="signer.id">
+                                            <div class="list-group-item px-0 cursor-pointer"
+                                                 t-on-click="() => this.openRequest(signer.request_id)">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <h6 class="mb-1 text-primary" t-esc="signer.request_name"/>
+                                                        <small class="text-muted">
+                                                            <span t-esc="signer.signer_name"/> •
+                                                            <span t-esc="signer.email"/>
+                                                        </small>
+                                                    </div>
+                                                    <span t-attf-class="badge #{getStateBadgeClass(signer.state)}"
+                                                          t-esc="getStateLabel(signer.state)"/>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Requests -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white border-0">
+                                <h5 class="mb-0">
+                                    <i class="fa fa-history text-primary me-2"/>
+                                    Recent Requests
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <t t-if="state.recentRequests.length === 0">
+                                    <div class="text-center py-4">
+                                        <i class="fa fa-inbox fa-3x text-muted mb-3"/>
+                                        <p class="text-muted">No requests yet. Create your first one!</p>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="list-group list-group-flush">
+                                        <t t-foreach="state.recentRequests" t-as="req" t-key="req.id">
+                                            <div class="list-group-item px-0 cursor-pointer"
+                                                 t-on-click="() => this.openRequest(req.id)">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <h6 class="mb-1">
+                                                            <span class="text-primary" t-esc="req.name"/>
+                                                            <small class="text-muted ms-1" t-esc="req.subject"/>
+                                                        </h6>
+                                                        <small class="text-muted">
+                                                            <span t-esc="req.signed_count"/>/<span t-esc="req.signer_count"/> signed
+                                                            • <span t-esc="req.create_date"/>
+                                                        </small>
+                                                    </div>
+                                                    <span t-attf-class="badge #{getStateBadgeClass(req.state)}"
+                                                          t-esc="getStateLabel(req.state)"/>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </t>
+                            </div>
+                            <div class="card-footer bg-white border-0" t-if="state.recentRequests.length > 0">
+                                <button class="btn btn-link text-primary p-0" t-on-click="openAll">
+                                    View all →
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

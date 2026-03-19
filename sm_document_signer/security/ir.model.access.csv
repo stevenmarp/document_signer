@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_document_request_user,sm.document.request.user,model_sm_document_request,group_signer_user,1,1,1,1
+access_document_request_manager,sm.document.request.manager,model_sm_document_request,group_signer_manager,1,1,1,1
+access_document_signer_user,sm.document.signer.user,model_sm_document_signer,group_signer_user,1,1,1,1
+access_document_signer_manager,sm.document.signer.manager,model_sm_document_signer,group_signer_manager,1,1,1,1

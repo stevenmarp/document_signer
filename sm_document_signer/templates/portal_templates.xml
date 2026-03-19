@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- ================================ -->
+        <!-- PORTAL SIGNING PAGE             -->
+        <!-- ================================ -->
+        <template id="portal_signing_page" name="Document Signing Page">
+            <t t-call="web.frontend_layout">
+                <div class="container py-4" style="max-width: 900px;">
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <h2 style="color: #875A7B;">
+                            <i class="fa fa-pencil-square-o"/> Document Signing
+                        </h2>
+                        <p class="text-muted">
+                            <t t-esc="doc_request.subject"/>
+                            <span class="badge bg-secondary ms-2"><t t-esc="doc_request.name"/></span>
+                        </p>
+                    </div>
+
+                    <!-- Signer Info Card -->
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>From:</strong> <t t-esc="doc_request.sender_id.name"/></p>
+                                    <p class="mb-1"><strong>To:</strong> <t t-esc="signer.name"/> (<t t-esc="signer.email"/>)</p>
+                                    <t t-if="signer.role">
+                                        <p class="mb-1"><strong>Role:</strong> <t t-esc="signer.role"/></p>
+                                    </t>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <t t-if="doc_request.expiration_date">
+                                        <p class="mb-1 text-danger">
+                                            <i class="fa fa-clock-o"/> Expires: <t t-esc="doc_request.expiration_date"/>
+                                        </p>
+                                    </t>
+                                    <a t-attf-href="/sign/#{signer.access_token}/download"
+                                       class="btn btn-outline-secondary btn-sm mt-1">
+                                        <i class="fa fa-download"/> Download PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Message from sender -->
+                    <t t-if="doc_request.message">
+                        <div class="alert alert-warning mb-4">
+                            <strong>💬 Message from sender:</strong>
+                            <div t-field="doc_request.message"/>
+                        </div>
+                    </t>
+
+                    <!-- PDF Viewer -->
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0"><i class="fa fa-file-pdf-o text-danger"/> Document Preview</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <iframe t-attf-src="/sign/#{signer.access_token}/view#toolbar=1"
+                                    style="width:100%;height:600px;border:none;"/>
+                        </div>
+                    </div>
+
+                    <!-- Signature Section -->
+                    <div class="card shadow-sm" id="signatureSection">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0"><i class="fa fa-pencil text-primary"/> Your Signature</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Signature Tabs -->
+                            <ul class="nav nav-tabs mb-3" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" data-bs-toggle="tab" href="#drawTab">
+                                        <i class="fa fa-pencil"/> Draw
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#typeTab">
+                                        <i class="fa fa-keyboard-o"/> Type
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#uploadTab">
+                                        <i class="fa fa-upload"/> Upload
+                                    </a>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content">
+                                <!-- Draw Tab -->
+                                <div class="tab-pane fade show active" id="drawTab">
+                                    <div class="border rounded p-2 mb-2" style="background: #fafafa;">
+                                        <canvas id="signatureCanvas" width="760" height="200"
+                                                style="width:100%;cursor:crosshair;touch-action:none;"/>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-secondary" id="clearCanvas">
+                                        <i class="fa fa-eraser"/> Clear
+                                    </button>
+                                </div>
+
+                                <!-- Type Tab -->
+                                <div class="tab-pane fade" id="typeTab">
+                                    <input type="text" id="typedSignature"
+                                           class="form-control form-control-lg mb-2"
+                                           placeholder="Type your full name..."
+                                           style="font-family: 'Brush Script MT', cursive; font-size: 32px;"/>
+                                    <canvas id="typedCanvas" width="760" height="200"
+                                            style="display:none;"/>
+                                </div>
+
+                                <!-- Upload Tab -->
+                                <div class="tab-pane fade" id="uploadTab">
+                                    <input type="file" id="uploadSignature"
+                                           class="form-control mb-2"
+                                           accept="image/png,image/jpeg,image/svg+xml"/>
+                                    <img id="uploadPreview" class="img-fluid border rounded"
+                                         style="max-height:200px;display:none;"/>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="mt-4 d-flex justify-content-between">
+                                <button class="btn btn-outline-danger" id="declineBtn">
+                                    <i class="fa fa-times"/> Decline to Sign
+                                </button>
+                                <button class="btn btn-primary btn-lg" id="submitSignature"
+                                        t-att-data-token="signer.access_token">
+                                    <i class="fa fa-check"/> ✍️ Sign Document
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Success Message (hidden initially) -->
+                    <div class="alert alert-success text-center mt-4" id="successMsg" style="display:none;">
+                        <h3>✅ Document Signed Successfully!</h3>
+                        <p>Thank you for signing. All parties will be notified.</p>
+                    </div>
+                </div>
+
+                <!-- Inline signing script (ensures it always loads on portal) -->
+                <script type="text/javascript">
+                    document.addEventListener('DOMContentLoaded', function() {
+                        var canvas = document.getElementById('signatureCanvas');
+                        if (!canvas) return;
+                        var ctx = canvas.getContext('2d');
+                        var isDrawing = false;
+                        var hasDrawn = false;
+                        var lastX = 0, lastY = 0;
+                        var activeTab = 'draw';
+
+                        // Resize canvas properly
+                        function resizeCanvas() {
+                            var rect = canvas.parentElement.getBoundingClientRect();
+                            canvas.width = rect.width - 16;
+                            canvas.height = 200;
+                            canvas.style.width = (rect.width - 16) + 'px';
+                            canvas.style.height = '200px';
+                            ctx.lineWidth = 2.5;
+                            ctx.lineCap = 'round';
+                            ctx.lineJoin = 'round';
+                            ctx.strokeStyle = '#1a1a2e';
+                        }
+                        resizeCanvas();
+                        window.addEventListener('resize', function() { if (!hasDrawn) resizeCanvas(); });
+
+                        function getPos(e) {
+                            var rect = canvas.getBoundingClientRect();
+                            var touch = e.touches ? e.touches[0] : e;
+                            return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+                        }
+                        function startDraw(e) {
+                            e.preventDefault();
+                            isDrawing = true;
+                            var pos = getPos(e);
+                            lastX = pos.x; lastY = pos.y;
+                            ctx.beginPath();
+                            ctx.moveTo(lastX, lastY);
+                        }
+                        function draw(e) {
+                            if (!isDrawing) return;
+                            e.preventDefault();
+                            var pos = getPos(e);
+                            ctx.lineTo(pos.x, pos.y);
+                            ctx.stroke();
+                            lastX = pos.x; lastY = pos.y;
+                            hasDrawn = true;
+                        }
+                        function endDraw() { isDrawing = false; }
+
+                        canvas.addEventListener('mousedown', startDraw);
+                        canvas.addEventListener('mousemove', draw);
+                        canvas.addEventListener('mouseup', endDraw);
+                        canvas.addEventListener('mouseleave', endDraw);
+                        canvas.addEventListener('touchstart', startDraw, {passive: false});
+                        canvas.addEventListener('touchmove', draw, {passive: false});
+                        canvas.addEventListener('touchend', endDraw);
+
+                        // Clear
+                        var clearBtn = document.getElementById('clearCanvas');
+                        if (clearBtn) clearBtn.addEventListener('click', function() {
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            hasDrawn = false;
+                        });
+
+                        // Tab switching
+                        document.querySelectorAll('[data-bs-toggle="tab"]').forEach(function(btn) {
+                            btn.addEventListener('click', function() {
+                                var href = this.getAttribute('href') || '';
+                                if (href.indexOf('draw') >= 0) activeTab = 'draw';
+                                else if (href.indexOf('type') >= 0) activeTab = 'type';
+                                else if (href.indexOf('upload') >= 0) activeTab = 'upload';
+                            });
+                        });
+
+                        // Typed signature
+                        var typedInput = document.getElementById('typedSignature');
+
+                        // Upload signature
+                        var uploadInput = document.getElementById('uploadSignature');
+                        var uploadPreview = document.getElementById('uploadPreview');
+                        if (uploadInput) {
+                            uploadInput.addEventListener('change', function() {
+                                var file = this.files[0];
+                                if (!file) return;
+                                var reader = new FileReader();
+                                reader.onload = function(ev) {
+                                    uploadPreview.src = ev.target.result;
+                                    uploadPreview.style.display = 'block';
+                                };
+                                reader.readAsDataURL(file);
+                            });
+                        }
+
+                        // Get signature data
+                        function getSignatureData() {
+                            if (activeTab === 'draw') {
+                                if (!hasDrawn) { alert('Please draw your signature.'); return null; }
+                                return { signature: canvas.toDataURL('image/png').split(',')[1], signature_type: 'draw' };
+                            } else if (activeTab === 'type') {
+                                var text = typedInput ? typedInput.value.trim() : '';
+                                if (!text) { alert('Please type your name.'); return null; }
+                                var tc = document.createElement('canvas');
+                                tc.width = 600; tc.height = 200;
+                                var tctx = tc.getContext('2d');
+                                tctx.fillStyle = '#fff'; tctx.fillRect(0,0,600,200);
+                                tctx.fillStyle = '#1a1a2e';
+                                tctx.font = 'italic 48px serif';
+                                tctx.textAlign = 'center'; tctx.textBaseline = 'middle';
+                                tctx.fillText(text, 300, 100);
+                                return { signature: tc.toDataURL('image/png').split(',')[1], signature_type: 'type' };
+                            } else if (activeTab === 'upload') {
+                                if (!uploadPreview || !uploadPreview.src || uploadPreview.style.display === 'none') {
+                                    alert('Please upload a signature image.'); return null;
+                                }
+                                var uc = document.createElement('canvas');
+                                uc.width = uploadPreview.naturalWidth || 600;
+                                uc.height = uploadPreview.naturalHeight || 200;
+                                uc.getContext('2d').drawImage(uploadPreview, 0, 0);
+                                return { signature: uc.toDataURL('image/png').split(',')[1], signature_type: 'upload' };
+                            }
+                            return null;
+                        }
+
+                        // Submit
+                        var submitBtn = document.getElementById('submitSignature');
+                        if (submitBtn) {
+                            submitBtn.addEventListener('click', function() {
+                                var data = getSignatureData();
+                                if (!data) return;
+                                var token = this.getAttribute('data-token');
+                                submitBtn.disabled = true;
+                                submitBtn.textContent = 'Submitting...';
+                                fetch('/sign/' + token + '/submit', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({jsonrpc: '2.0', method: 'call', params: data}),
+                                })
+                                .then(function(r) { return r.json(); })
+                                .then(function(result) {
+                                    if (result.result &amp;&amp; result.result.success) {
+                                        document.getElementById('signatureSection').style.display = 'none';
+                                        document.getElementById('successMsg').style.display = 'block';
+                                    } else {
+                                        var err = (result.result &amp;&amp; result.result.error) || 'Unknown error';
+                                        alert('Error: ' + err);
+                                        submitBtn.disabled = false;
+                                        submitBtn.innerHTML = 'Sign Document';
+                                    }
+                                })
+                                .catch(function() {
+                                    alert('Network error.');
+                                    submitBtn.disabled = false;
+                                    submitBtn.innerHTML = 'Sign Document';
+                                });
+                            });
+                        }
+
+                        // Decline
+                        var declineBtn = document.getElementById('declineBtn');
+                        if (declineBtn) {
+                            declineBtn.addEventListener('click', function() {
+                                var reason = prompt('Reason for declining (optional):');
+                                if (reason === null) return;
+                                var token = submitBtn ? submitBtn.getAttribute('data-token') : '';
+                                declineBtn.disabled = true;
+                                fetch('/sign/' + token + '/decline', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({jsonrpc: '2.0', method: 'call', params: {reason: reason}}),
+                                })
+                                .then(function(r) { return r.json(); })
+                                .then(function(result) {
+                                    if (result.result &amp;&amp; result.result.success) {
+                                        document.getElementById('signatureSection').style.display = 'none';
+                                        var decMsg = document.createElement('div');
+                                        decMsg.className = 'alert alert-danger text-center mt-4';
+                                        decMsg.innerHTML = 'Document Declined. You have declined to sign this document.';
+                                        document.getElementById('signatureSection').parentNode.appendChild(decMsg);
+                                    } else { alert('Error'); declineBtn.disabled = false; }
+                                })
+                                .catch(function() { alert('Network error.'); declineBtn.disabled = false; });
+                            });
+                        }
+                    });
+                </script>
+            </t>
+        </template>
+
+        <!-- ================================ -->
+        <!-- INVALID LINK PAGE               -->
+        <!-- ================================ -->
+        <template id="portal_invalid_link" name="Invalid Signing Link">
+            <t t-call="web.frontend_layout">
+                <div class="container py-5 text-center" style="max-width: 600px;">
+                    <div class="card shadow-sm">
+                        <div class="card-body py-5">
+                            <i class="fa fa-exclamation-triangle fa-4x text-warning mb-3"/>
+                            <h3>Invalid Signing Link</h3>
+                            <p class="text-muted">
+                                This signing link is invalid or has already been used.
+                                Please contact the sender for a new link.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+        <!-- ================================ -->
+        <!-- ALREADY SIGNED PAGE             -->
+        <!-- ================================ -->
+        <template id="portal_already_signed" name="Already Signed">
+            <t t-call="web.frontend_layout">
+                <div class="container py-5 text-center" style="max-width: 600px;">
+                    <div class="card shadow-sm">
+                        <div class="card-body py-5">
+                            <i class="fa fa-check-circle fa-4x text-success mb-3"/>
+                            <h3>Already Signed</h3>
+                            <p class="text-muted">
+                                You have already signed this document on
+                                <strong><t t-esc="signer.signed_date"/></strong>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+        <!-- ================================ -->
+        <!-- EXPIRED PAGE                    -->
+        <!-- ================================ -->
+        <template id="portal_expired" name="Signing Expired">
+            <t t-call="web.frontend_layout">
+                <div class="container py-5 text-center" style="max-width: 600px;">
+                    <div class="card shadow-sm">
+                        <div class="card-body py-5">
+                            <i class="fa fa-clock-o fa-4x text-danger mb-3"/>
+                            <h3>Signing Request Expired</h3>
+                            <p class="text-muted">
+                                This signing request has expired or been cancelled.
+                                Please contact the sender for a new request.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+    </data>
+</odoo>
